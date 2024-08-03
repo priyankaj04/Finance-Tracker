@@ -92,7 +92,7 @@ const MoneyTracker = () => {
           <Text style={styles.listDate}>{dayjs(item.date).format('DD MMM YY')}</Text>
         </View>
         <View style={{ display: 'flex', flexDirection: 'row', gap: 5 }}>
-          <Text style={{ ...styles.listvalue, color: item.type === 'credit' ? '#28a745' : '#dc3545' }}>₹{Number(item.value).toLocaleString('en')}</Text>
+          <Text style={{ ...styles.listvalue, color: item.type === 'credit' ? '#28a745' : '#ef4444' }}>₹{Number(item.value).toLocaleString('en')}</Text>
           <TouchableOpacity
             style={styles.listbuttonedit}
             onPress={() => {
@@ -100,7 +100,7 @@ const MoneyTracker = () => {
               setModalVisibleEdit(true);
             }}
           >
-            <MaterialIcons name="edit" size={20} color="#134e4a" />
+            <MaterialIcons name="edit" size={20} color="#5eead4" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.listbuttonedit}
@@ -108,7 +108,7 @@ const MoneyTracker = () => {
               handleDelete();
             }}
           >
-            <MaterialIcons name="delete" size={20} color="red" />
+            <MaterialIcons name="delete" size={20} color="#dc2626" />
           </TouchableOpacity>
         </View>
       </View>
@@ -137,7 +137,7 @@ const MoneyTracker = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.date}>3rd August 2024</Text>
+        <Text style={styles.date}>{dayjs().format('DD MMMM YYYY')}</Text>
       </View>
       <View style={styles.main}>
         <Image source={require('./asset/moneybag1.png')} style={styles.icon} />
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   },
   main: {
     alignItems: 'center',
-    backgroundColor: '#99f6e4',
+    backgroundColor: '#115e59',
     padding: 20,
     borderRadius: 10,
     shadowColor: '#fff',
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 16,
-    color: '#042f2e',
+    color: '#ccfbf1',
     fontFamily: 'Montserrat-Regular'
   },
   balance: {
@@ -336,13 +336,13 @@ const styles = StyleSheet.create({
   },
   spendingLabel: {
     fontSize: 16,
-    color: '#042f2e',
+    color: '#ccfbf1',
     marginTop: 20,
     fontFamily: 'Montserrat-Regular'
   },
   spending: {
     fontSize: 24,
-    color: '#dc3545',
+    color: '#ef4444',
     marginVertical: 0,
     fontFamily: 'Montserrat-Bold'
   },
@@ -360,14 +360,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 15,
-    backgroundColor: '#99f6e4',
     borderRadius: 10,
     alignItems: 'center',
-    marginVertical: 5
+    marginVertical: 5,
+    borderColor: '#134e4a',
+    borderWidth: 1
   },
   listDate: {
     fontSize: 14,
-    color: '#333',
+    color: '#14b8a6',
     fontFamily: 'Montserrat-Regular'
   },
   listvalue: {
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
   listname: {
     fontFamily: 'Montserrat-Medium',
     fontSize: 18,
-    color: '#222',
+    color: '#f0fdfa',
   },
   listbuttonedit: {
     borderRadius: 50,
