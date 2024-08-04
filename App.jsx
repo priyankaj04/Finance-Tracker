@@ -79,7 +79,13 @@ const MoneyTracker = () => {
     const finallist = [];
 
     borrowinglist?.forEach((item) => {
-      const getotherlists = data.filter((it) => it.spendingtype === item.spendingtype && it.value === item.value && it.paymenttype === 'paid' && dayjs(it.date).format('MM-YYYY') === dayjs().format('MM-YYYY'))
+      let getotherlists = []
+      if (item.spendingtype === 'Others') {
+        getotherlists = data.filter((it) => it.name == item.name && item.spendingtype === 'Others' && it.value === item.value && it.paymenttype === 'paid' && dayjs(it.date).format('MM-YYYY') === dayjs().format('MM-YYYY'));
+        console.log("getotehr", getotherlists)
+      } else {
+        getotherlists = data.filter((it) => it.spendingtype === item.spendingtype && it.value === item.value && it.paymenttype === 'paid' && dayjs(it.date).format('MM-YYYY') === dayjs().format('MM-YYYY'))
+      }
 
       if (getotherlists?.length > 0) {
         finallist.push({ ...item, status: 'paid' })
