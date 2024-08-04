@@ -869,7 +869,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     marginHorizontal: 5,
-    alignItems: 'center'
   },
   cancelButton: {
     borderColor: '#dc2626',
