@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, Modal, TextInput, TouchableOpacity, ImageBackground, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image, FlatList, Modal, TextInput, TouchableOpacity, ImageBackground, ScrollView } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -16,6 +16,15 @@ import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import isToday from 'dayjs/plugin/isToday';
+import isYesterday from 'dayjs/plugin/isYesterday';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+
+dayjs.extend(isToday);
+dayjs.extend(isYesterday);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 const MoneyTracker = () => {
   const [spendings, setSpendings] = useState([]);
@@ -27,6 +36,7 @@ const MoneyTracker = () => {
   const [modalVisibleEdit, setModalVisibleEdit] = useState(false);
   const [editSpending, setEditSpending] = useState(null);
   const [borrowings, setBorrowings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const Options = ['Food', 'Travel', 'Coffee', 'Haarvish', 'Brunda', 'Simpl', 'Chats', 'Petrol', 'EMI', 'Bank', 'Income', 'Others'];
 
 
@@ -37,11 +47,31 @@ const MoneyTracker = () => {
         getBalance(res.data);
         getTodaysspent(res.data);
         getBorrowingsList(res.data)
+        setLoading(false)
       } else {
         setSpendings([]);
+        setLoading(false);
       }
     });
   }, [fetch]);
+
+
+  const getFormattedDate = (inputDate) => {
+    const date = dayjs(inputDate);
+    const today = dayjs();
+    const startOfWeek = today.startOf('week');
+    const endOfWeek = today.endOf('week');
+
+    if (date.isToday()) {
+      return 'Today';
+    } else if (date.isYesterday()) {
+      return 'Yesterday';
+    } else if (date.isSameOrAfter(startOfWeek) && date.isSameOrBefore(endOfWeek)) {
+      return date.format('dddd');
+    } else {
+      return date.format('MMMM D, YYYY');
+    }
+  };
 
   const getBorrowingsList = (data) => {
     const borrowinglist = data.filter((it) => it.paymenttype === 'borrowed' && dayjs(it.date).format('MM-YYYY') === dayjs().format('MM-YYYY'));
@@ -202,7 +232,7 @@ const MoneyTracker = () => {
         <View style={{ display: 'flex', flexDirection: 'row', gap: 15, alignItems: 'center' }}>
           <GetIconWithType type={item.spendingtype} />
           <View>
-            <Text style={styles.listDate}>{dayjs(item.date).format('DD MMM YY')}</Text>
+            <Text style={styles.listDate}>{getFormattedDate(item.date)}</Text>
             <Text style={styles.listname}>{item.name}</Text>
           </View>
         </View>
@@ -330,18 +360,26 @@ const MoneyTracker = () => {
               ₹{Number(item.value).toLocaleString('en')}
             </Text>
             {
-              item.status == 'paid' && <Text style={{ ...styles.listvalue, fontFamily:'Montserrat-SemiBold', marginTop: 5, color: '#28a745', fontSize: 14 }}>Paid</Text>
+              item.status == 'paid' && <Text style={{ ...styles.listvalue, fontFamily: 'Montserrat-SemiBold', marginTop: 5, color: '#28a745', fontSize: 14 }}>Paid</Text>
             }
           </View>
         </View>
         <View style={{ marginTop: 10 }}>
-          <Text style={styles.listDate}>{dayjs(item.date).format('DD MMM YY')}</Text>
+          <Text style={styles.listDate}>{getFormattedDate(item.date)}</Text>
           <Text style={{ ...styles.listname, fontSize: 16 }}>{item.spendingtype}</Text>
         </View>
 
       </TouchableOpacity>
     );
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', backgroundColor: '#0a0a0a' }}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -351,26 +389,29 @@ const MoneyTracker = () => {
           <Image source={require('./asset/profileimg.png')} style={{ width: 50, height: 50, borderRadius: 50 }}></Image>
         </View>
         <View style={styles.main}>
-          <View>
-            <Text style={styles.balanceLabel}>Balance</Text>
-            <Text style={styles.balance}>₹{Number(balance).toLocaleString('en')}</Text>
-          </View>
-          <View style={{ marginTop: 20 }}>
-            <Text style={styles.spendingLabel}>Today's Spendings</Text>
-            <Text style={styles.spending}>₹{Number(todayspent).toLocaleString('en')}</Text>
-          </View>
+          <ImageBackground style={{padding: 20}} imageStyle={{borderRadius: 10}} source={require('./asset/cardbg.png')}>
+            <View>
+              <Text style={styles.balanceLabel}>Balance</Text>
+              <Text style={styles.balance}>₹{Number(balance).toLocaleString('en')}</Text>
+            </View>
+            <View style={{ marginTop: 20 }}>
+              <Text style={styles.spendingLabel}>Today's Spendings</Text>
+              <Text style={styles.spending}>₹{Number(todayspent).toLocaleString('en')}</Text>
+            </View>
+          </ImageBackground>
         </View>
         <ScrollView>
-          <View style={styles.list}>
-            <Text style={styles.listHeader}>Your Borrowings</Text>
-            {borrowings?.length > 0 &&
+          {borrowings?.length > 0 &&
+            <View style={styles.list}>
+              <Text style={styles.listHeader}>Your Borrowings</Text>
               <FlatList
                 horizontal
                 data={borrowings}
                 renderItem={borrowedItem}
                 keyExtractor={(item) => item.id.toString()}
-              />}
-          </View>
+              />
+            </View>
+          }
           <FlatList
             data={spendings}
             renderItem={renderItem}
@@ -596,6 +637,7 @@ const MoneyTracker = () => {
             </View>
           </View>
         </Modal>
+        <Toast position='top' swipeable={true} />
       </ImageBackground>
     </View>
   );
@@ -672,7 +714,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b82f6',
     width: '90%',
     alignSelf: 'center',
-    padding: 20,
     borderRadius: 10
   },
   balanceLabel: {
@@ -750,7 +791,7 @@ const styles = StyleSheet.create({
   listDate: {
     fontSize: 12,
     color: '#aaa',
-    fontFamily: 'Montserrat-Light',
+    fontFamily: 'Montserrat-Medium',
   },
   listvalue: {
     fontSize: 18,
