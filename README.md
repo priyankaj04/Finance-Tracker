@@ -29,6 +29,13 @@ Money Tracker is a custom-built React Native application designed to help you an
 * `Supabase`: Managed service providing PostgreSQL as a cloud database.
 
 
+## Repository Structure
+
+
+This repository contains the React Native application for MoneyTracker. For the backend code, please refer to the [MoneyTracker Backend Repository](https://github.com/priyankaj04/money-tracker-backend).
+
+
+
 ## Configure the Backend
 
 
