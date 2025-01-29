@@ -20,13 +20,18 @@ import isToday from 'dayjs/plugin/isToday';
 import isYesterday from 'dayjs/plugin/isYesterday';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 dayjs.extend(isToday);
 dayjs.extend(isYesterday);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
+dayjs.extend(isoWeek);
 
-const MoneyTracker = () => {
+
+const Home = () => {
   const [spendings, setSpendings] = useState([]);
   const [newSpending, setNewSpending] = useState({ value: '', date: new Date(), name: '', type: 'debit', spendingtype: '', paymenttype: 'paid' });
   const [modalVisible, setModalVisible] = useState(false);
@@ -395,7 +400,7 @@ const MoneyTracker = () => {
           <Image source={require('./asset/profileimg.png')} style={{ width: 50, height: 50, borderRadius: 50 }}></Image>
         </View>
         <View style={styles.main}>
-          <ImageBackground style={{padding: 20}} imageStyle={{borderRadius: 10}} source={require('./asset/cardbg.png')}>
+          <ImageBackground style={{ padding: 20 }} imageStyle={{ borderRadius: 10 }} source={require('./asset/cardbg.png')}>
             <View>
               <Text style={styles.balanceLabel}>Balance</Text>
               <Text style={styles.balance}>₹{Number(balance).toLocaleString('en')}</Text>
@@ -646,6 +651,150 @@ const MoneyTracker = () => {
         <Toast position='top' swipeable={true} />
       </ImageBackground>
     </View>
+  );
+}
+
+const Analysis = () => {
+  const [weeklyExpenses, setWeeklyExpenses] = useState({});
+  const [monthlyExpenses, setMonthlyExpenses] = useState({});
+  const [totalWeekly, setTotalWeekly] = useState(0);
+  const [totalMonthly, setTotalMonthly] = useState(0);
+  const [spendings, setSpendings] = useState([]);
+  const [newSpending, setNewSpending] = useState({ value: '', date: new Date(), name: '', type: 'debit', spendingtype: '', paymenttype: 'paid' });
+  const [modalVisible, setModalVisible] = useState(false);
+  const [balance, setBalance] = useState(0);
+  const [todayspent, setTodayspent] = useState(0);
+  const [fetch, setFetch] = useState(false);
+  const [modalVisibleEdit, setModalVisibleEdit] = useState(false);
+  const [editSpending, setEditSpending] = useState(null);
+  const [borrowings, setBorrowings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const Options = ['Food', 'Travel', 'Coffee', 'Haarvish', 'Brunda', 'Simpl', 'Chats', 'Petrol', 'EMI', 'Bank', 'Income', 'Others'];
+
+  useEffect(() => {
+    GetAll().then((res) => {
+      if (res.status) {
+        setSpendings(res.data.sort((a, b) => b.id - a.id));
+        const weeks = groupByWeek(res.data.sort((a, b) => b.id - a.id));
+        const months = groupByMonth(res.data.sort((a, b) => b.id - a.id));
+        setWeeklyExpenses(weeks);
+        setMonthlyExpenses(months);
+
+        const totalWeek = Object.values(weeks).reduce((total, weekSpendings) => total + calculateTotal(weekSpendings), 0);
+        const totalMonth = Object.values(months).reduce((total, monthSpendings) => total + calculateTotal(monthSpendings), 0);
+
+        setTotalWeekly(totalWeek);
+        setTotalMonthly(totalMonth);
+        setLoading(false)
+      } else {
+        setSpendings([]);
+        setLoading(false);
+      }
+    });
+
+  }, [fetch]);
+
+  const groupByWeek = (spendings) => {
+    const weeks = {};
+    spendings.forEach(spending => {
+      const week = dayjs(spending.date).isoWeek();
+      const year = dayjs(spending.date).year();
+      const key = `${year}-W${week}`;
+      if (!weeks[key]) {
+        weeks[key] = [];
+      }
+      weeks[key].push(spending);
+    });
+    return weeks;
+  };
+
+  const groupByMonth = (spendings) => {
+    const months = {};
+    spendings.forEach(spending => {
+      const month = dayjs(spending.date).month() + 1;
+      const year = dayjs(spending.date).year();
+      const key = `${year}-${month}`;
+      if (!months[key]) {
+        months[key] = [];
+      }
+      months[key].push(spending);
+    });
+    return months;
+  };
+
+  const calculateTotal = (spendings) => {
+    return spendings.reduce((total, spending) => (spending.type === 'debit' && spending.paymenttype !== 'borrowed' ? (total + parseInt(spending.value)) : total), 0);
+  };
+
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', backgroundColor: '#0a0a0a' }}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    )
+  }
+
+  return (
+    <View style={styles.container}>
+      <ImageBackground source={background} style={styles.backgroundImage} resizeMode="cover">
+        <View style={{ backgroundColor: 'white' }}>
+          <Text>Weekly Expenses</Text>
+          <FlatList
+            data={Object.keys(weeklyExpenses)}
+            renderItem={({ item }) => (
+              <View>
+                <Text>{item}</Text>
+                <Text>{calculateTotal(weeklyExpenses[item])}</Text>
+              </View>
+            )}
+            keyExtractor={(item) => item}
+          />
+          <Text>Total Weekly Expenses: {totalWeekly}</Text>
+
+          <Text>Monthly Expenses</Text>
+          <FlatList
+            data={Object.keys(monthlyExpenses)}
+            renderItem={({ item }) => (
+              <View>
+                <Text>{item}</Text>
+                <Text>{calculateTotal(monthlyExpenses[item])}</Text>
+              </View>
+            )}
+            keyExtractor={(item) => item}
+          />
+          <Text>Total Monthly Expenses: {totalMonthly}</Text>
+        </View>
+
+        <Toast position='top' swipeable={true} />
+      </ImageBackground>
+    </View>
+  );
+}
+const Tab = createBottomTabNavigator();
+
+const MoneyTracker = () => {
+  return (
+    <NavigationContainer>
+      <Tab.Navigator
+        style={{ backgroundColor: 'blue' }}
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ focused, color, size }) => {
+            if (route.name === 'Home') {
+              return <Ionicons name='home' size={size} color={color} />
+            } else if (route.name === 'Settings') {
+              return <Icon name='google-analytics' size={size} color={color} />
+            };
+          },
+          tabBarActiveTintColor: '#3b82f6',
+          tabBarInactiveTintColor: 'gray',
+        })}
+      >
+        <Tab.Screen name="Home" component={Home} />
+        <Tab.Screen name="Settings" component={Analysis} />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 };
 
