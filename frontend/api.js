@@ -1,4 +1,4 @@
-const reacturl = 'https://money-tracker-backend-indol.vercel.app'
+const reacturl = 'https://moneytracker-frontend-d1bcbg69n.vercel.app'
 
 export const Create = (reqbody) => {
     let url = reacturl + '/api/createnew';
