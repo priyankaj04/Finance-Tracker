@@ -16,7 +16,7 @@ export const Create = (reqbody) => {
         .catch(err => console.error('error:' + err));
 }
 
-export const GetAll = (reqbody) => {
+export const GetAll = async () => {
     let url = reacturl + '/api/all';
 
     let options = {
@@ -25,11 +25,19 @@ export const GetAll = (reqbody) => {
             'Content-Type': 'application/json'
         }
     };
+    try {
+        const res = await fetch(url, options);
+        const text = await res.text();
 
-    return fetch(url, options)
-        .then(res => res.json())
-        .catch(err => console.error('error:' + err));
-}
+        console.log("Raw response:", text);
+
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        throw error;
+    }
+};
+
 
 export const Update = (id, reqbody) => {
     let url = reacturl + '/api/' + id;

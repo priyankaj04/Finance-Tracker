@@ -39,20 +39,28 @@ const MoneyTracker = () => {
   const [loading, setLoading] = useState(true);
   const Options = ['Food', 'Travel', 'Coffee', 'Haarvish', 'Brunda', 'Simpl', 'Chats', 'Petrol', 'EMI', 'Bank', 'Income', 'Others'];
 
+  const getAllList = async () => {
+    try{
+    const response = await GetAll();
+    if (response?.status) {
+      setSpendings(response.data.sort((a, b) => b.id - a.id));
+      getBalance(response.data);
+      getTodaysspent(response.data);
+      getBorrowingsList(response.data)
+      setLoading(false)
+    } else {
+      setSpendings([]);
+      setLoading(false);
+    }
+  } catch (error) {
+    console.log("Error here only", error)
+    setSpendings([]);
+    setLoading(false);
+  }
+  }
 
   useEffect(() => {
-    GetAll().then((res) => {
-      if (res.status) {
-        setSpendings(res.data.sort((a, b) => b.id - a.id));
-        getBalance(res.data);
-        getTodaysspent(res.data);
-        getBorrowingsList(res.data)
-        setLoading(false)
-      } else {
-        setSpendings([]);
-        setLoading(false);
-      }
-    });
+    getAllList()
   }, [fetch]);
 
 
@@ -264,6 +272,7 @@ const MoneyTracker = () => {
           text1: 'Record created successfully!!',
         });
       } else {
+        console.log("res.msg", res)
         Toast.show({
           type: 'error',
           text1: res.msg,
@@ -395,7 +404,7 @@ const MoneyTracker = () => {
           <Image source={require('./asset/profileimg.png')} style={{ width: 50, height: 50, borderRadius: 50 }}></Image>
         </View>
         <View style={styles.main}>
-          <ImageBackground style={{padding: 20}} imageStyle={{borderRadius: 10}} source={require('./asset/cardbg.png')}>
+          <ImageBackground style={{ padding: 20 }} imageStyle={{ borderRadius: 10 }} source={require('./asset/cardbg.png')}>
             <View>
               <Text style={styles.balanceLabel}>Balance</Text>
               <Text style={styles.balance}>₹{Number(balance).toLocaleString('en')}</Text>
